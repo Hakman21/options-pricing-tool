@@ -44,3 +44,5 @@ _staging*/
 _s[0-9]*/
 delete/
 *.tar.gz
+
+test.ps1

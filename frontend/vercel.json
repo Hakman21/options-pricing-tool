@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://REPLACE-ME.vercel.app/api/:path*"
+      "destination": "https://options-pricing-api-ebon.vercel.app/api/:path*"
     }
   ],
   "headers": [
