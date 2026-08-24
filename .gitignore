@@ -37,3 +37,4 @@ coverage/
 Thumbs.db
 *.swp
 delete
+_to_delete

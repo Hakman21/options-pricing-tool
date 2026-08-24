@@ -46,6 +46,21 @@ RUN uv sync --frozen --no-dev --extra market
 # ─────────────────────────────────────────────────────────────────────────────
 FROM python:3.12-slim AS runtime
 
+# Apply pending Debian security updates.
+#
+# Official base images are rebuilt on their own schedule, so they lag the Debian
+# security archive - often by a week or more. Upgrading here means the image never
+# ships a package that already has a published fix.
+#
+# This composes with `ignore-unfixed: true` on the Trivy scan in CI: unfixed
+# advisories are skipped because nothing can be done about them, and fixed ones are
+# applied automatically by this line. The gate therefore only fails when a fix
+# exists that the build did not pick up, which is a real problem worth stopping for.
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 # Build metadata, passed in by CI so a running container can report exactly which
 # commit produced it (see GET /api/v1/meta).
 ARG GIT_SHA=unknown
