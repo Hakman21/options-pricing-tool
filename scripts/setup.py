@@ -101,7 +101,7 @@ def setup_backend() -> bool:
     # Editable install: `import option_pricing` then works from anywhere without
     # PYTHONPATH, and source edits take effect without reinstalling.
     print("  installing dependencies (a minute or two the first time) ...", end="", flush=True)
-    result = run([str(py), "-m", "pip", "install", "-e", ".[dev,market]", "--quiet"],
+    result = run([str(py), "-m", "pip", "install", "-e", ".[dev]", "--quiet"],
                  BACKEND, capture=True)
     if result.returncode != 0:
         print(red(" failed"))

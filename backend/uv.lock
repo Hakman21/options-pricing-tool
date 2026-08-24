@@ -1054,6 +1054,7 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "scipy" },
     { name = "uvicorn", extra = ["standard"] },
+    { name = "yfinance" },
 ]
 
 [package.optional-dependencies]
@@ -1065,9 +1066,6 @@ dev = [
     { name = "pytest-cov" },
     { name = "ruff" },
     { name = "types-cachetools" },
-]
-market = [
-    { name = "yfinance" },
 ]
 
 [package.dev-dependencies]
@@ -1097,9 +1095,9 @@ requires-dist = [
     { name = "scipy", specifier = ">=1.11" },
     { name = "types-cachetools", marker = "extra == 'dev'", specifier = ">=5.5" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.32" },
-    { name = "yfinance", marker = "extra == 'market'", specifier = ">=0.2.50" },
+    { name = "yfinance", specifier = ">=0.2.50" },
 ]
-provides-extras = ["market", "dev"]
+provides-extras = ["dev"]
 
 [package.metadata.requires-dev]
 dev = [
