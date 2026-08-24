@@ -271,6 +271,26 @@ for, and how to pin the base image by digest.
 
 ---
 
+## Deployment
+
+The project deploys to Vercel as two projects from this one repository: the web app
+as a static build on the CDN, and the API as a Python function. A rewrite in
+[`frontend/vercel.json`](frontend/vercel.json) puts them on a single origin, which is
+why there is no CORS configuration anywhere - the browser only ever talks to one host.
+
+```
+Browser ──▶ static site  ──/api/*──rewrite──▶  Python function
+```
+
+[`docs/DEPLOY-VERCEL.md`](docs/DEPLOY-VERCEL.md) has the full walkthrough: project
+settings, the verification curls, and what the failure modes look like.
+
+The container is not replaced by any of this. Vercel and the image are two
+independent ways to run the same API, and the image is the portable one - it runs
+anywhere that takes an OCI image, with no platform-specific configuration at all.
+
+---
+
 ## Repository layout
 
 ```
@@ -300,6 +320,7 @@ frontend/
 docs/
   MATHS.md                every formula, with conventions and derivation notes
   DOCKER.md               the container build, explained
+  DEPLOY-VERCEL.md        deploying both halves to Vercel
   adr/                    architecture decisions and their trade-offs
 ```
 

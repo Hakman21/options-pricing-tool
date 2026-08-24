@@ -12,7 +12,7 @@ services:
       context: ./backend
       target: builder
     command: >
-      uv run --frozen --extra market uvicorn api.main:app
+      uv run --frozen uvicorn api.main:app
       --host 0.0.0.0 --port 8000 --reload --reload-dir /app/src
     environment:
       PYTHONPATH: /app/src

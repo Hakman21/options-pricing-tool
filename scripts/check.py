@@ -47,9 +47,9 @@ def main() -> int:
         return 1
 
     steps = [
-        Step("ruff (lint)", [str(py), "-m", "ruff", "check", "src", "tests"], BACKEND,
+        Step("ruff (lint)", [str(py), "-m", "ruff", "check", "src", "tests", "app.py"], BACKEND,
              "style and common-bug rules"),
-        Step("ruff (format)", [str(py), "-m", "ruff", "format", "--check", "src", "tests"], BACKEND,
+        Step("ruff (format)", [str(py), "-m", "ruff", "format", "--check", "src", "tests", "app.py"], BACKEND,
              "consistent formatting"),
         Step("mypy (types)", [str(py), "-m", "mypy"], BACKEND,
              "strict static type checking"),

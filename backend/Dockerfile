@@ -39,17 +39,12 @@ WORKDIR /app
 # final sync instead of reinstalling NumPy and SciPy. This ordering is the single
 # biggest difference between a pleasant and an infuriating development loop.
 COPY pyproject.toml uv.lock README.md ./
-RUN uv sync --frozen --no-dev --extra market --no-install-project
+RUN uv sync --frozen --no-dev --no-install-project
 
 # Now the source, and a second sync that installs the project itself.
 #
-# --extra market pulls in yfinance. It is an optional extra so the pricing library
-# can be installed on its own, but any deployment that serves the web UI needs it:
-# the UI offers ticker lookup, and an image that cannot do it ships a broken button.
-# To run without live data, set OPT_MARKET_DATA_ENABLED=false - a configuration
-# choice rather than a missing dependency.
 COPY src/ ./src/
-RUN uv sync --frozen --no-dev --extra market
+RUN uv sync --frozen --no-dev
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Stage 2 - runtime

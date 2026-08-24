@@ -26,7 +26,7 @@ Local-first. The default path requires **Python and Node, and nothing else**.
 2. Plain `pip` and `venv`, not `uv`. `uv` is faster and `uv.lock` is kept for CI and
    the image, but requiring it would add an install before the first run. The dev
    dependencies are mirrored into `[project.optional-dependencies]` so
-   `pip install -e ".[dev,market]"` works with a stock Python.
+   `pip install -e ".[dev]"` works with a stock Python.
 3. The frontend's `base` is `/` and the app runs at the root. The Vite dev server
    proxies `/api` to the Python process, so both halves are on one origin and there
    is no CORS configuration anywhere.

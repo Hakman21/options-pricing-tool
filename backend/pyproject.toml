@@ -18,22 +18,25 @@ classifiers = [
 ]
 
 dependencies = [
+    # The pricing library itself needs only these two.
     "numpy>=1.26",
     "scipy>=1.11",
+    # The API layer. This distribution ships both the library and the service, so
+    # anyone installing it gets the web stack regardless - which is why yfinance
+    # sits here too rather than behind an extra. Treating one of them as optional
+    # while the rest were mandatory was an inconsistency, and it also broke
+    # deployment targets that install from [project] dependencies alone.
     "fastapi>=0.115",
     "uvicorn[standard]>=0.32",
     "pydantic>=2.9",
     "pydantic-settings>=2.6",
     "cachetools>=5.5",
+    # Imported lazily, inside api/market_data.py only. The pricing code never
+    # touches it, and the API degrades to manual entry if it is unavailable.
+    "yfinance>=0.2.50",
 ]
 
 [project.optional-dependencies]
-# An extra so the pricing library can be installed without a web scraper attached -
-# it is useless to anyone importing option_pricing from a notebook. Any deployment
-# serving the UI does install it (see the Dockerfile); live lookups are switched off
-# with OPT_MARKET_DATA_ENABLED=false, not by omitting the dependency.
-market = ["yfinance>=0.2.50"]
-
 # Mirrors the [dependency-groups] dev set below. The duplication is deliberate:
 # dependency-groups are the modern standard and what uv and CI use, but plain pip
 # only learned to install them recently. Keeping an extra means
@@ -62,6 +65,13 @@ dev = [
 [project.urls]
 Homepage = "https://github.com/Hakman21/options-pricing-tool"
 Repository = "https://github.com/Hakman21/options-pricing-tool"
+
+# Vercel resolves an entrypoint to a file path relative to the project root, so
+# this points at ./app.py rather than at the src-layout module `api.main`, which
+# it would look for at ./api/main.py and never find. app.py is a two-line shim
+# over the real application; see the docstring there.
+[tool.vercel]
+entrypoint = "app:app"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/option_pricing", "src/api"]
@@ -118,7 +128,8 @@ quote-style = "double"
 # codebase, so installing 3.12+ is much the better answer.
 python_version = "3.12"
 strict = true
-files = ["src"]
+files = ["src", "app.py"]
+mypy_path = "src"
 warn_unreachable = true
 warn_return_any = true
 show_error_codes = true
@@ -132,7 +143,9 @@ ignore_missing_imports = true
 # ── pytest ────────────────────────────────────────────────────────────────────
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+# "." puts the backend root on the path so tests/api/test_entrypoint.py can import
+# the deployment shim, app.py, which lives beside the package rather than inside it.
+pythonpath = ["src", "."]
 addopts = "-q --strict-markers --strict-config"
 markers = [
     "slow: convergence tests that build large lattices or simulate many paths",
