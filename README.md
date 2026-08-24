@@ -80,6 +80,7 @@ python scripts/dev.py       # every time after
 
 On Windows, `scripts\setup.cmd` and `scripts\dev.cmd` do the same thing.
 
+| | |
 |---|---|
 | App | <http://127.0.0.1:5173> |
 | API docs | <http://127.0.0.1:5173/api/docs> |
