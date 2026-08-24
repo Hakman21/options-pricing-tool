@@ -1,18 +1,28 @@
 # Automated dependency updates.
 #
-# Everything is grouped so each ecosystem produces at most one or two pull requests
-# rather than one per package. Ungrouped, a fresh repository opens a dozen PRs the
-# first time this runs, and a bot that floods the queue gets muted - at which point
-# it protects nothing.
+# Two rules shape this file, both learned the hard way:
 #
-# Version updates run on this schedule. Security advisories are separate: GitHub
-# raises those immediately regardless of what is configured here, so a relaxed
-# cadence costs nothing in safety.
+# 1. Group everything. Ungrouped, a fresh repository opens a dozen PRs at once,
+#    and a bot that floods the queue gets muted - at which point it protects
+#    nothing.
+#
+# 2. Never propose a major version. A major bump is a migration, not an update:
+#    React 18 to 19, or Vite 6 to 8, is breaking-change work that deserves its own
+#    branch, its own reading of the changelog, and its own decision. A bot cannot
+#    make that call, and a PR that fails CI on arrival is just noise.
+#
+# Version updates run on this schedule. Security advisories are separate - GitHub
+# raises those immediately regardless of what is configured here - so a calm
+# cadence here costs nothing in safety.
 
 version: 2
 updates:
-  # The Docker base image. If the FROM line is pinned to a digest
-  # (scripts/pin_base_image.py), this is what keeps that pin current.
+  # The Docker base image.
+  #
+  # Patch updates only. The Python *minor* version is an architectural decision,
+  # not a dependency: it has to match what the CI matrix tests and what
+  # `requires-python` declares. Letting a bot move 3.12 to 3.14 means shipping an
+  # interpreter the test suite never runs on, which is exactly what happened once.
   - package-ecosystem: docker
     directory: /backend
     schedule:
@@ -21,9 +31,14 @@ updates:
     open-pull-requests-limit: 2
     commit-message:
       prefix: build
+    ignore:
+      - dependency-name: "python"
+        update-types:
+          - version-update:semver-major
+          - version-update:semver-minor
 
-  # Python. One PR for the lot: they are checked together by CI anyway, and a
-  # single "did the suite stay green" decision is easier than eight of them.
+  # Python packages. One PR for the lot: CI checks them together anyway, so a
+  # single "did the suite stay green" decision beats eight of them.
   - package-ecosystem: pip
     directory: /backend
     schedule:
@@ -35,6 +50,10 @@ updates:
     groups:
       python:
         patterns: ["*"]
+        update-types: [minor, patch]
+    ignore:
+      - dependency-name: "*"
+        update-types: [version-update:semver-major]
 
   - package-ecosystem: npm
     directory: /frontend
@@ -47,9 +66,13 @@ updates:
     groups:
       javascript:
         patterns: ["*"]
+        update-types: [minor, patch]
+    ignore:
+      - dependency-name: "*"
+        update-types: [version-update:semver-major]
 
   # Workflow actions. Monthly, because they move slowly - and because an action
-  # pinned to a stale tag is how a deprecated runner silently breaks a build.
+  # left on a stale tag is how a deprecated runner silently breaks a build.
   - package-ecosystem: github-actions
     directory: /
     schedule:

@@ -9,10 +9,20 @@
 # Expect roughly 250 MB. NumPy and SciPy are genuinely large - anyone quoting 50 MB
 # for a scientific Python image is not shipping SciPy.
 
+# The Python minor version is deliberate, not incidental. It has to match the CI
+# matrix and `requires-python` in pyproject.toml, because the image is the thing
+# people actually run - shipping an interpreter the test suite never exercises is
+# how a green pipeline stops meaning anything. Dependabot is configured to propose
+# patch updates only for this reason (.github/dependabot.yml).
+#
+# Moving it is a three-part change: this file, the CI matrix, and a check that the
+# new base image does not ship its own vulnerable packages. python:3.14-slim, for
+# instance, currently bundles a setuptools with a published CVE.
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Stage 1 - build the virtual environment
 # ─────────────────────────────────────────────────────────────────────────────
-FROM python:3.14-slim AS builder
+FROM python:3.12-slim AS builder
 
 # UV_COMPILE_BYTECODE trades a slower build for a faster cold start, which is the
 # right trade for a scale-to-zero deployment where every request may be the first.
@@ -44,7 +54,7 @@ RUN uv sync --frozen --no-dev --extra market
 # ─────────────────────────────────────────────────────────────────────────────
 # Stage 2 - runtime
 # ─────────────────────────────────────────────────────────────────────────────
-FROM python:3.14-slim AS runtime
+FROM python:3.12-slim AS runtime
 
 # Apply pending Debian security updates.
 #
