@@ -1,4 +1,4 @@
-# Python
+# ── Python ───────────────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 .venv/
@@ -13,28 +13,34 @@ venv/
 coverage.xml
 htmlcov/
 
-# The OpenAPI document is generated from the app on demand (`make openapi`) and
-# regenerated in CI. Committing it would create a second source of truth that
-# silently goes stale.
+# Generated from the running app by scripts/check.py and regenerated in CI.
+# Committing it would create a second source of truth that silently goes stale.
 backend/openapi.json
 
-# Node
+# ── Node ─────────────────────────────────────────────────────────────────────
 node_modules/
 dist/
 coverage/
 *.tsbuildinfo
 .vite/
 
-# Environment
+# ── Environment ──────────────────────────────────────────────────────────────
 .env
 .env.*
 !.env.example
 
-# Editors and OS
+# ── Editors and OS ───────────────────────────────────────────────────────────
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
 *.swp
-delete
-_to_delete
+*~
+
+# ── Scratch ──────────────────────────────────────────────────────────────────
+# Staging folders and transfer archives.
+_to_delete/
+_staging*/
+_s[0-9]*/
+delete/
+*.tar.gz
