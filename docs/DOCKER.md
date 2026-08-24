@@ -54,10 +54,42 @@ dependencies. A healthcheck that called the market data upstream would kill the
 container during an upstream outage - precisely when restarting it helps least.
 `/ready` is the probe that does check dependencies, and it reports them individually.
 
+**Pending security updates are applied at build time.** Official base images are
+rebuilt on their own schedule and lag the Debian security archive, often by a week
+or more, so a freshly pulled `python:3.12-slim` routinely contains packages that
+already have published fixes. `apt-get upgrade` in the runtime stage closes that gap.
+
 **Build metadata.** `GIT_SHA` and `BUILD_TIME` are passed in by CI and surfaced at
 `GET /api/v1/meta`, so a running container can say exactly which commit produced it.
 
 Expect roughly 250 MB. NumPy and SciPy are genuinely large.
+
+---
+
+## The vulnerability gate
+
+CI scans the built image with Trivy and fails on HIGH or CRITICAL findings. Two
+settings make that gate stable rather than a source of random red builds:
+
+- **`ignore-unfixed: true`** skips advisories with no available fix. Failing a build
+  over something nobody can act on teaches people to ignore the build.
+- **`apt-get upgrade` in the Dockerfile** applies every fix that *is* available.
+
+Together they mean the scan only fails when a fix exists and the image did not pick
+it up - which is a real problem worth stopping for, and usually means rebuilding.
+
+If a finding is genuinely not exploitable here, record it rather than weakening the
+gate. Create `backend/.trivyignore`:
+
+```
+# CVE-2026-XXXXX: util-linux mount(8) TOCTOU.
+# Not reachable: this container never mounts anything and runs as a non-root user
+# with no SUID binaries in its path. Revisit when the base image ships the fix.
+CVE-2026-XXXXX
+```
+
+Every entry needs a reason and a date to revisit. An ignore file without
+justifications is just a disabled scanner.
 
 ---
 
