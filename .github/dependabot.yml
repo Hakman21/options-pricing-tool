@@ -1,0 +1,62 @@
+# Automated dependency updates.
+#
+# This is the other half of pinning. A pinned base image is reproducible but goes
+# stale, and a stale image quietly accumulates unpatched CVEs. Dependabot watches
+# for newer versions and opens a pull request, so an update is something you read
+# and merge rather than something that happens to you between two builds.
+#
+# Everything here is weekly and volume-capped: a bot that opens twenty PRs a week
+# gets muted, and a muted bot protects nothing.
+
+version: 2
+updates:
+  # The Docker base image. With the FROM line pinned to a digest
+  # (scripts/pin_base_image.py), this is what keeps the pin current.
+  - package-ecosystem: docker
+    directory: /backend
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "build"
+
+  # Python dependencies.
+  - package-ecosystem: pip
+    directory: /backend
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "build"
+    groups:
+      # One PR for the whole dev toolchain rather than five separate ones. These
+      # are checked by CI and never ship in the image, so they can move together.
+      dev-tooling:
+        patterns: ["pytest*", "hypothesis", "ruff", "mypy", "types-*", "httpx"]
+
+  # Frontend packages.
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "build"
+    groups:
+      react:
+        patterns: ["react", "react-dom", "@types/react", "@types/react-dom"]
+      tooling:
+        patterns: ["vite", "vitest", "@vitejs/*", "eslint*", "@eslint/*", "typescript*", "prettier"]
+
+  # The workflows themselves. Actions pinned to a major version still drift, and a
+  # deprecated action is a build that breaks without anyone touching the code.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "ci"

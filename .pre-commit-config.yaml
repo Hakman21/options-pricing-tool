@@ -1,0 +1,61 @@
+# Runs the fast half of CI before a commit is created, so the pipeline mostly tells
+# you about things you could not have known locally, rather than about formatting.
+#
+#   uv tool install pre-commit && pre-commit install
+#
+# Tests are deliberately not here: a hook slow enough to be annoying gets bypassed
+# with --no-verify, and a bypassed hook protects nothing.
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+        exclude: ^frontend/tsconfig.*\.json$ # these carry comments
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=512]
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: [--fix=lf]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.5
+    hooks:
+      - id: ruff
+        args: [--fix]
+        files: ^backend/
+      - id: ruff-format
+        files: ^backend/
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
+    hooks:
+      - id: mypy
+        files: ^backend/src/
+        args: [--strict, --ignore-missing-imports]
+        additional_dependencies:
+          - pydantic>=2.9
+          - pydantic-settings>=2.6
+          - numpy>=1.26
+          - types-cachetools
+
+  - repo: local
+    hooks:
+      - id: prettier
+        name: prettier
+        entry: bash -c 'cd frontend && npx prettier --check .'
+        language: system
+        files: ^frontend/
+        pass_filenames: false
+
+      - id: eslint
+        name: eslint
+        entry: bash -c 'cd frontend && npx eslint . --max-warnings 0'
+        language: system
+        files: ^frontend/.*\.(ts|tsx)$
+        pass_filenames: false

@@ -1,0 +1,54 @@
+# Local development: one command, both services, hot reload on each.
+#
+# The API runs from the same Dockerfile CI builds (stopping at the builder stage and
+# mounting the source over it), so "works in compose" and "works in the image" mean
+# the same thing. The frontend runs Vite's dev server, proxying API calls to the
+# `api` service by name - which is exactly what the Vercel rewrite does in
+# production, so the app cannot tell the two environments apart.
+
+services:
+  api:
+    build:
+      context: ./backend
+      target: builder
+    command: >
+      uv run --frozen --extra market uvicorn api.main:app
+      --host 0.0.0.0 --port 8000 --reload --reload-dir /app/src
+    environment:
+      PYTHONPATH: /app/src
+      OPT_MARKET_DATA_ENABLED: "true"
+      OPT_GIT_SHA: dev
+    volumes:
+      # Source is mounted so edits reload instantly; the virtualenv is masked by an
+      # anonymous volume so the container keeps its own and does not fight a host
+      # .venv built for a different platform.
+      - ./backend/src:/app/src
+      - /app/.venv
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
+
+  web:
+    image: node:22-slim
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    environment:
+      # Vite proxies to the API by service name rather than localhost, because
+      # inside the compose network localhost is the web container itself.
+      VITE_API_PROXY_TARGET: http://api:8000
+    volumes:
+      - ./frontend:/app
+      - web_node_modules:/app/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  web_node_modules:

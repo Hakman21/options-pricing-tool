@@ -1,0 +1,155 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "options-pricing-tool"
+version = "1.0.0"
+description = "Closed-form, lattice and Monte Carlo pricing for vanilla options, with a typed HTTP API"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "Hakim Ahmed", email = "hakman21@hotmail.com" }]
+keywords = ["options", "black-scholes", "monte-carlo", "binomial", "quantitative-finance"]
+classifiers = [
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Office/Business :: Financial :: Investment",
+]
+
+dependencies = [
+    "numpy>=1.26",
+    "scipy>=1.11",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "cachetools>=5.5",
+]
+
+[project.optional-dependencies]
+# An extra so the pricing library can be installed without a web scraper attached -
+# it is useless to anyone importing option_pricing from a notebook. Any deployment
+# serving the UI does install it (see the Dockerfile); live lookups are switched off
+# with OPT_MARKET_DATA_ENABLED=false, not by omitting the dependency.
+market = ["yfinance>=0.2.50"]
+
+# Mirrors the [dependency-groups] dev set below. The duplication is deliberate:
+# dependency-groups are the modern standard and what uv and CI use, but plain pip
+# only learned to install them recently. Keeping an extra means
+# `pip install -e ".[dev]"` works on any machine with Python and nothing else.
+dev = [
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "hypothesis>=6.115",
+    "httpx>=0.27",
+    "ruff>=0.8",
+    "mypy>=1.13",
+    "types-cachetools>=5.5",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "hypothesis>=6.115",
+    "httpx>=0.27",
+    "ruff>=0.8",
+    "mypy>=1.13",
+    "types-cachetools>=5.5",
+]
+
+[project.urls]
+Homepage = "https://github.com/Hakman21/options-pricing-tool"
+Repository = "https://github.com/Hakman21/options-pricing-tool"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/option_pricing", "src/api"]
+
+# ── ruff ──────────────────────────────────────────────────────────────────────
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",    # pycodestyle
+    "F",         # pyflakes
+    "I",         # isort
+    "N",         # pep8-naming
+    "UP",        # pyupgrade
+    "B",         # bugbear
+    "C4",        # comprehensions
+    "SIM",       # simplify
+    "RUF",       # ruff-specific
+    "ARG",       # unused arguments
+    "PTH",       # use pathlib
+    "NPY",       # numpy-specific
+]
+ignore = [
+    "E501",   # line length is enforced by the formatter, not the linter
+    "B008",   # FastAPI's Depends()/Path() defaults are the documented idiom
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Property-based tests legitimately assert on magic numbers and shadow builtins.
+"tests/**" = ["ARG001", "ARG002"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+# ── mypy ──────────────────────────────────────────────────────────────────────
+[tool.mypy]
+# 3.12 is a hard floor for type checking, not a preference.
+#
+# mypy parses type stubs with the *running* interpreter's parser. Current NumPy
+# ships stubs written with PEP 695 syntax (`type X = ...`), which Python 3.11
+# cannot parse at all - so on 3.11 mypy fails inside numpy/__init__.pyi before it
+# ever reaches this project's code. Setting --python-version does not help: the
+# limit is the interpreter running mypy, not the target version.
+#
+# If you are ever stuck on 3.11, the escape hatch is to stop following NumPy's
+# stubs:
+#     [[tool.mypy.overrides]]
+#     module = ["numpy.*"]
+#     follow_imports = "skip"
+# That costs you type checking of every NumPy call, which is most of this
+# codebase, so installing 3.12+ is much the better answer.
+python_version = "3.12"
+strict = true
+files = ["src"]
+warn_unreachable = true
+warn_return_any = true
+show_error_codes = true
+pretty = true
+
+[[tool.mypy.overrides]]
+# Neither ships type information.
+module = ["scipy.*", "yfinance.*"]
+ignore_missing_imports = true
+
+# ── pytest ────────────────────────────────────────────────────────────────────
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q --strict-markers --strict-config"
+markers = [
+    "slow: convergence tests that build large lattices or simulate many paths",
+]
+filterwarnings = ["error::RuntimeWarning"]
+
+# ── coverage ──────────────────────────────────────────────────────────────────
+[tool.coverage.run]
+source = ["src"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "\\.\\.\\.",
+]

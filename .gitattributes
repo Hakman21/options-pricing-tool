@@ -1,0 +1,15 @@
+# Normalise line endings.
+#
+# Without this, Git for Windows checks files out with CRLF by default, and
+# `prettier --check` and `ruff format --check` then fail on every file — the
+# classic "passes on Linux, fails on Windows" that has nothing to do with the code.
+* text=auto eol=lf
+
+# Windows batch files genuinely need CRLF.
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# Generated; keep it out of diffs and language stats.
+frontend/src/types/api.d.ts linguist-generated=true
+frontend/package-lock.json  linguist-generated=true
+backend/uv.lock             linguist-generated=true
