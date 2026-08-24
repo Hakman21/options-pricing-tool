@@ -12,7 +12,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Stage 1 - build the virtual environment
 # ─────────────────────────────────────────────────────────────────────────────
-FROM python:3.12-slim AS builder
+FROM python:3.14-slim AS builder
 
 # UV_COMPILE_BYTECODE trades a slower build for a faster cold start, which is the
 # right trade for a scale-to-zero deployment where every request may be the first.
@@ -44,7 +44,7 @@ RUN uv sync --frozen --no-dev --extra market
 # ─────────────────────────────────────────────────────────────────────────────
 # Stage 2 - runtime
 # ─────────────────────────────────────────────────────────────────────────────
-FROM python:3.12-slim AS runtime
+FROM python:3.14-slim AS runtime
 
 # Apply pending Debian security updates.
 #
