@@ -17,10 +17,10 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
-    "@tanstack/react-query": "^5.103.1",
+    "@tanstack/react-query": "^5.104.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-hook-form": "^7.88.0",
+    "react-hook-form": "^7.90.0",
     "recharts": "^2.15.0",
     "zod": "^3.24.1"
   },
@@ -29,7 +29,7 @@
     "@tailwindcss/vite": "^4.0.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.3",
-    "@testing-library/user-event": "^14.6.7",
+    "@testing-library/user-event": "^14.6.8",
     "@types/react": "^18.3.14",
     "@types/react-dom": "^18.3.2",
     "@vitejs/plugin-react": "^4.3.4",
@@ -40,11 +40,11 @@
     "jsdom": "^25.0.1",
     "msw": "^2.7.0",
     "openapi-typescript": "^7.4.4",
-    "prettier": "^3.9.8",
+    "prettier": "^3.9.10",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.2",
-    "typescript-eslint": "^8.70.0",
-    "vite": "^6.0.3",
+    "typescript-eslint": "^8.71.2",
+    "vite": "^6.4.4",
     "vitest": "^3.2.7"
   }
 }
